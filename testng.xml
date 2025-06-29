@@ -1,0 +1,7 @@
+<suite name="API Automation Suite">
+    <test name="Happy Flow Tests">
+        <classes>
+            <class name="tests.CreatePlanTest" />
+        </classes>
+    </test>
+</suite>
