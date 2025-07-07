@@ -21,8 +21,8 @@ import java.util.Map;
 public class CreatePlanTest extends BaseTest {
 
     private String salespersonToken;
-    private final int memberId = 9;
-    private final int clientFmcgId = 2;
+    private final int memberId = 25;
+    private final int clientFmcgId = 8;
     private Map<String, List<Integer>> planIds = new HashMap<>();
 
     @Test(priority = 1)
@@ -31,7 +31,7 @@ public class CreatePlanTest extends BaseTest {
         System.out.println("Logged in successfully. Token retrieved.");
     }
 
-    @Test(priority = 2, dependsOnMethods = "loginAsSalesperson")
+   @Test(priority = 2, dependsOnMethods = "loginAsSalesperson")
     public void createPlanWithDynamicPayload() throws JsonProcessingException {
         Map<String, Object> payload = PlanPayloadData.getSmartDailyPlanPayload(memberId, clientFmcgId);
         ObjectMapper mapper = new ObjectMapper();
@@ -51,10 +51,10 @@ public class CreatePlanTest extends BaseTest {
         System.out.println("Plan Creation Response:\n" + response.asPrettyString());
     }
 
-    @Test(priority = 3, dependsOnMethods = "createPlanWithDynamicPayload")
+    @Test(priority = 3)
     public void fetchPlanIdsAfterCreation() {
-        LocalDate startDate = LocalDate.of(2025, 6, 25);
-        LocalDate endDate = LocalDate.of(2025, 6, 30);
+        LocalDate startDate = LocalDate.of(2025, 7, 1);
+        LocalDate endDate = LocalDate.of(2025, 7, 10);
 
         planIds = PlanUtils.getAllPlanIds(salespersonToken, memberId, startDate, endDate);
 

@@ -5,6 +5,7 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
@@ -36,6 +37,18 @@ public class CombinePlanExtractor {
             DataStore.put("beetLogPlanId", beetPlanIds.get(0)); // or handle multiple if needed
         }
 
+
+        List<Map<String, Object>> bjpList = jsonPath.getList("bjpReportResponseList");
+        if (bjpList != null && !bjpList.isEmpty()) {
+            Map<String, Object> firstItem = bjpList.get(0);
+            Map<String, Object> beet = (Map<String, Object>) firstItem.get("beet");
+            if (beet != null && beet.get("id") != null) {
+                int beetId = (Integer) beet.get("id");
+                DataStore.put("bjp_beet_id", beetId); // ✅ use a dedicated key
+                System.out.println("✅ Extracted beetId from combine plan: " + beetId);
+            }
+        }
+
         // Extract doctor logs (DJP)
         List<Integer> doctorLogIds = jsonPath.getList("doctorReportResponseList.id");
         List<Integer> doctorPlanIds = jsonPath.getList("doctorReportResponseList.planId");
@@ -55,7 +68,10 @@ public class CombinePlanExtractor {
         // Put memberId as well
         DataStore.put("memberId", memberId);
 
+        System.out.println(response.asPrettyString());
+
         System.out.println("✅ Extracted all logs and plan IDs successfully.");
+
     }
 }
 
