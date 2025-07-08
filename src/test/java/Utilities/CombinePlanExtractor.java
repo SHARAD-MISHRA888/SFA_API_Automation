@@ -44,8 +44,8 @@ public class CombinePlanExtractor {
             Map<String, Object> beet = (Map<String, Object>) firstItem.get("beet");
             if (beet != null && beet.get("id") != null) {
                 int beetId = (Integer) beet.get("id");
-                DataStore.put("bjp_beet_id", beetId); // ✅ use a dedicated key
-                System.out.println("✅ Extracted beetId from combine plan: " + beetId);
+                DataStore.put("bjp_beet_id", beetId); // use a dedicated key
+                System.out.println("Extracted beetId from combine plan: " + beetId);
             }
         }
 
@@ -70,7 +70,7 @@ public class CombinePlanExtractor {
 
         System.out.println(response.asPrettyString());
 
-        System.out.println("✅ Extracted all logs and plan IDs successfully.");
+        System.out.println("Extracted all logs and plan IDs successfully.");
 
     }
 }

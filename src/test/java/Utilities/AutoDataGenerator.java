@@ -11,137 +11,6 @@ import static io.restassured.RestAssured.given;
 
 public class AutoDataGenerator {
 
-
-//    public static void generateOrderAndSampleData(String token, int memberId) {
-//        Response response = given()
-//                .header("Authorization", "Bearer " + token)
-//                .accept("application/hal+json")
-//                .get("https://staging.prism-sfa-dev.net/combine-tour-plan/getTodayCombinePlanByMemberId/" + memberId + "?visitDate=" + getTodayDate());
-//
-//        List<Map<String, Object>> bjpList = response.jsonPath().getList("bjpReportResponseList");
-//
-//        if (bjpList == null || bjpList.isEmpty()) {
-//            System.out.println("❌ No BJP data found in today's tour plan.");
-//            return;
-//        }
-//
-//        Map<String, Object> firstBjp = bjpList.get(0);
-//        Map<String, Object> outletDto = (Map<String, Object>) firstBjp.get("outletGetDto");
-//        Map<String, Object> beetDto = (Map<String, Object>) firstBjp.get("beet");
-//        if (outletDto == null) {
-//            System.out.println("❌ outletGetDto missing in BJP data.");
-//            return;
-//        }
-//
-//        Object outletIdObj = outletDto.get("id");
-//        Object clientIdObj = outletDto.get("clientId");
-//        Object beetLogIdObj = firstBjp.get("id");
-//        Object beetIdObj = beetDto.get("id");
-//
-//
-//        System.out.println(clientIdObj);
-//
-//        System.out.println(beetIdObj);
-//
-//        if (outletIdObj == null || clientIdObj == null) {
-//            System.out.println("❌ outletId or clientId is missing.");
-//            return;
-//        }
-//
-//        int outletId = (int) outletIdObj;
-//        int clientId = (int) clientIdObj;
-//        int beetLogId =(int) beetLogIdObj;
-//        int beetId = (int) beetIdObj;
-//
-//
-//
-//        List<Map<String, Object>> sampleInventory = fetchSampleInventory(memberId, token);
-//        if (sampleInventory == null || sampleInventory.isEmpty()) {
-//            System.out.println("❌ No sample inventory found.");
-//            return;
-//        }
-//
-//        Object sampleProductIdObj = sampleInventory.get(0).get("productId");
-//        if (sampleProductIdObj == null) {
-//            System.out.println("❌ sample productId is missing.");
-//            return;
-//        }
-//        int sampleProductId = (int) sampleProductIdObj;
-//
-//        List<Map<String, Object>> productInventory = fetchProductInventory(clientId, token);
-//        if (productInventory == null || productInventory.isEmpty()) {
-//            System.out.println("❌ No product inventory found.");
-//            return;
-//        }
-//
-//        Object orderProductIdObj = productInventory.get(0).get("productId");
-//        if (orderProductIdObj == null) {
-//            System.out.println("❌ order productId is missing.");
-//            return;
-//        }
-//        int orderProductId = (int) orderProductIdObj;
-//
-//
-//        List<Map<String,Object>> productList = fetchAllProducts((token));
-//        if (productList == null || productList.isEmpty()){
-//            System.out.println("No Product found");
-//            return;
-//        }
-//
-//        Object productListObj = productList.get(0).get("productId");
-//        if (productListObj == null){
-//            System.out.println("productID is missing.");
-//            return;
-//        }
-//        int productId = (int) productListObj;
-//
-//        // Generate order
-//        Map<String, Object> orderReq = new HashMap<>();
-//        orderReq.put("productId", orderProductId);
-//        orderReq.put("quantity", 10);
-//        orderReq.put("salesLevel", "STOCKIST");
-//        orderReq.put("bundleType", "Cases");
-//        orderReq.put("clientId", clientId);
-//        orderReq.put("beetId",beetId);
-//        orderReq.put("beetLogId",beetLogId);
-//        orderReq.put("memberId", memberId);
-//        orderReq.put("outletId", outletId);
-//        orderReq.put("orderMedium", "OnSite");
-//        orderReq.put("orderCallStatus", "Productive");
-//        orderReq.put("remarks", "Auto-generated order");
-//        orderReq.put("discountCode", "");
-//
-//        Map<String, Object> outletOrderWrapper = new HashMap<>();
-//        outletOrderWrapper.put("outletId", outletId);
-//        outletOrderWrapper.put("orderRequestList", List.of(orderReq));
-//
-//        // Generate sample
-//        Map<String, Object> sampleReq = new HashMap<>();
-//        sampleReq.put("memberId", memberId);
-//        sampleReq.put("quantity", 2);
-//        sampleReq.put("clientFmcgId", clientId);
-//        System.out.println(clientId);
-//        sampleReq.put("outletId", outletId);
-//        sampleReq.put("bundleType", "Cases");
-//        sampleReq.put("productId", sampleProductId);
-//        sampleReq.put("beetLogId",beetLogId);
-//
-//        List<Map<String, Object>> orders = List.of(outletOrderWrapper);
-//        List<Map<String, Object>> samples = List.of(sampleReq);
-//
-//        DataStore.put("orders", orders);
-//        DataStore.put("samples", samples);
-//
-
-    /// /       DataStore.put("samples", new ArrayList<>()); // optional, for safety
-//
-//
-//        System.out.println("Sample Request..."+sampleReq);
-//        System.out.println("Order Request..."+orderReq);
-//
-//
-//        System.out.println("✅ Auto-generated 1 order and 1 sample.");
-//    }
     public static void generateOrderAndSampleData(String token, int memberId) {
 
         DataStore.put("memberId", memberId);
@@ -240,7 +109,8 @@ public class AutoDataGenerator {
 
             // ----------------- BJP: Orders + Samples -----------------
             if (isOutlet) {
-                if (!productInventoryCache.containsKey(clientId)) {
+                if (!productInventoryCache.containsKey(clientId) && clientId != null) {
+                    System.out.println("Here is the client id........"+clientId);
                     List<Map<String, Object>> inventory = fetchProductInventory(clientId, token);
                     productInventoryCache.put(clientId, inventory);
                 }
@@ -297,7 +167,7 @@ public class AutoDataGenerator {
 
                     Integer available = sampleInventoryMap.getOrDefault(productId, 0);
                     if (available < 2) {
-                        throw new RuntimeException("❌ Not enough sample inventory for productId: " + productId);
+                        throw new RuntimeException("Not enough sample inventory for productId: " + productId);
                     }
 
                     Map<String, Object> sampleReq = new HashMap<>();
@@ -325,7 +195,7 @@ public class AutoDataGenerator {
 
                         Integer available = sampleInventoryMap.getOrDefault(productId, 0);
                         if (available < 2) {
-                            throw new RuntimeException("❌ Not enough sample inventory for productId: " + productId);
+                            throw new RuntimeException("Not enough sample inventory for productId: " + productId);
                         }
 
                         Map<String, Object> sampleReq = new HashMap<>();
@@ -382,7 +252,7 @@ public class AutoDataGenerator {
 
                     Integer available = sampleInventoryMap.getOrDefault(productId, 0);
                     if (available < 2) {
-                        throw new RuntimeException("❌ Not enough sample inventory for productId: " + productId);
+                        throw new RuntimeException("Not enough sample inventory for productId: " + productId);
                     }
 
                     Map<String, Object> sampleReq = new HashMap<>();
@@ -402,19 +272,19 @@ public class AutoDataGenerator {
         DataStore.put("orders", allOrders);
         DataStore.put("samples", allSamples);
 
-        System.out.println("✅ Total Orders: " + allOrders.size());
-        System.out.println("✅ Total Samples: " + allSamples.size());
+        System.out.println("Total Orders: " + allOrders.size());
+        System.out.println("Total Samples: " + allSamples.size());
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             String ordersJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(allOrders);
-            System.out.println("📦 Orders in JSON Format:\n" + ordersJson);
+            System.out.println("Orders in JSON Format:\n" + ordersJson);
         } catch (Exception e) {
             e.printStackTrace();
         }
         System.out.println("--------------------------------------------------");
         try {
             String ordersJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(allSamples);
-            System.out.println("📦 Sample in JSON Format:\n" + ordersJson);
+            System.out.println("Sample in JSON Format:\n" + ordersJson);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -429,7 +299,7 @@ public class AutoDataGenerator {
                             "?page=0&pageSize=10&sortBy=createdDate&sortDirection=asc");
 
             // Debug response
-            System.out.println("📦 Sample Inventory Response: " + response.asString());
+            System.out.println("Sample Inventory Response: " + response.asString());
 
             // Adjust this if the response has a wrapper object like 'data'
             return response.jsonPath().getList("content"); // assuming pagination structure
@@ -444,14 +314,14 @@ public class AutoDataGenerator {
                     .get("/inventory-service/getAllInventoryByClinetFmcgId/" + clientId +
                             "?page=0&pageSize=10&sortBy=createdDate&sortDirection=desc");
 
-            System.out.println("📦 Product Inventory Response: " + response.asString());
+            System.out.println("Product Inventory Response: " + response.asString());
 
             if (response.getStatusCode() != 200) {
-                System.out.println("❌ Failed to fetch product inventory. Status: " + response.getStatusCode());
+                System.out.println("Failed to fetch product inventory. Status: " + response.getStatusCode());
                 return Collections.emptyList();
             }
 
-            // ✅ Safely extract the 'content' list from the response
+            // Safely extract the 'content' list from the response
             return response.jsonPath().getList("content");
         }
 
@@ -464,10 +334,10 @@ public class AutoDataGenerator {
                     .header("accept", "application/hal+json")
                     .get("/product-service/products/all?page=0&pageSize=10&sortBy=createdDate&sortDirection=desc");
 
-            System.out.println("📦 Products Response: " + response.asString());
+            System.out.println("Products Response: " + response.asString());
 
             if (response.getStatusCode() != 200) {
-                System.out.println("❌ Failed to fetch products. Status: " + response.getStatusCode());
+                System.out.println("Failed to fetch products. Status: " + response.getStatusCode());
                 return Collections.emptyList();
             }
 
@@ -475,11 +345,11 @@ public class AutoDataGenerator {
             List<Map<String, Object>> productList = response.jsonPath().getList("content");
 
             if (productList == null || productList.isEmpty()) {
-                System.out.println("❌ No products found.");
+                System.out.println("No products found.");
                 return Collections.emptyList();
             }
 
-            System.out.println("✅ Fetched " + productList.size() + " products.");
+            System.out.println("Fetched " + productList.size() + " products.");
             return productList;
         }
 

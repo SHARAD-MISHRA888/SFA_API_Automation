@@ -12,15 +12,6 @@ import static io.restassured.RestAssured.given;
 
 public class PlanUtils {
 
-    public static Response createPlanInBulk(String token, Map<String, Object> payload) {
-        return given()
-                .baseUri("https://staging.prism-sfa-dev.net")
-                .header("Authorization", "Bearer " + token)
-                .header("accept", "application/hal+json")
-                .header("Content-Type", "application/json")
-                .body(payload)
-                .post("/combine-tour-plan/createCombineTourPlanInBulk");
-    }
 
     public static Map<String, List<Integer>> getAllPlanIds(String token, int memberId, LocalDate startDate, LocalDate endDate) {
         String baseUri = "https://staging.prism-sfa-dev.net";
@@ -46,15 +37,12 @@ public class PlanUtils {
         result.put("DJP", extractIdsFrom(response, "doctorReportResponseList", "planId"));
         result.put("CJP", extractIdsFrom(response, "cjpReportResponseList", "id"));
 
-//        System.out.println("BJP Plan IDs: " + result.get("BJP"));
-//        System.out.println("DJP Plan IDs: " + result.get("DJP"));
-//        System.out.println("CJP IDs: " + result.get("CJP"));
 
         return result;
     }
 
 
-    // 🔁 Helper method to extract plan IDs from each list
+    // Helper method to extract plan IDs from each list
     private static List<Integer> extractIdsFrom(Response response, String key, String idFieldName) {
         List<Map<String, Object>> plans = response.jsonPath().getList(key);
 
@@ -114,22 +102,6 @@ public class PlanUtils {
 
        response.prettyPrint();
 
-//
-//        System.out.println(response);
-//
-//        Map<String, Object> result = new HashMap<>();
-//        String workingWith = response.jsonPath().getString("workingWith.name");
-//        result.put("workingWith", workingWith != null ? workingWith : "N/A");
-//
-//        // Safely extract beatId
-//        List<Map<String, Object>> beats = response.jsonPath().getList("beats");
-//        if (beats != null && !beats.isEmpty() && beats.get(0).get("id") != null) {
-//            result.put("beatId", beats.get(0).get("id"));
-//        } else {
-//            result.put("beatId", null);  // No beat found
-//        }
-//
-//        return result;
 
 //   BJP Response List Only
         Map<String, Object> resultBjp = new HashMap<>();
@@ -184,7 +156,7 @@ public class PlanUtils {
             }
 
         } else {
-            System.out.println("❌ No BJP report data found.");
+            System.out.println("No BJP report data found.");
             resultCjp.put("workingWith", "N/A");
             resultCjp.put("beetId", null);
             resultCjp.put("beetLogId", null);
@@ -214,59 +186,13 @@ public class PlanUtils {
             }
 
         } else {
-            System.out.println("❌ No BJP report data found.");
+            System.out.println("No BJP report data found.");
             resultDjp.put("workingWith", "N/A");
             resultDjp.put("beetId", null);
             resultDjp.put("beetLogId", null);
         }
 
         return resultDjp;
-    }
-
-
-
-//    public static Map<String, Object> getTodayTourPlan(int memberId, String visitDate, String token) {
-//        RestAssured.baseURI = "https://staging.prism-sfa-dev.net";
-//        Response response = given()
-//                .header("Authorization", "Bearer " + token)
-//                .get("/combine-tour-plan/getTodayCombinePlanByMemberId/" + memberId + "?visitDate=" + visitDate);
-//
-//        if (response.statusCode() != 200) {
-//            System.out.println("❌ Failed to fetch tour plan. Status: " + response.statusCode());
-//            return Collections.emptyMap();
-//        }
-//
-//        Map<String, Object> fullResponse = response.jsonPath().getMap("");
-//
-//        // You can pass this entire response to AutoDataGenerator for further parsing
-//        return fullResponse;
-//    }
-
-
-
-    public static Response getSampleInventoryByMemberId(int memberId, int page, int pageSize, String sortBy, String sortDirection, String token) {
-        String endpoint = String.format("https://staging.prism-sfa-dev.net/inventory-service/sample-inventory/getAllSampleMemberById/9?page=0&pageSize=500&sortBy=createdDate&sortDirection=dsc",
-                memberId, page, pageSize, sortBy, sortDirection);
-
-        return RestAssured
-                .given()
-                .header("Authorization", "Bearer " + token)
-                .header("accept", "application/hal+json")
-                .when()
-                .get(endpoint)
-                .then()
-                .extract()
-                .response();
-    }
-
-    public static Response getProductInventory(int clientId, int page, int pageSize, String sortBy, String sortDirection, String token) {
-        String endpoint = String.format("https://staging.prism-sfa-dev.net/inventory-service/inventoryWithProductNameWithClientFmcgResponse/all/%d?page=%d&pageSize=%d&sortBy=%s&sortDirection=%s",
-                clientId, page, pageSize, sortBy, sortDirection);
-
-        return RestAssured.given()
-                .header("Authorization", "Bearer " + token)
-                .header("accept", "application/hal+json")
-                .get(endpoint);
     }
 
 }
