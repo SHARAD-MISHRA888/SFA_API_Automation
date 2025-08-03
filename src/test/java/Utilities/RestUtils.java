@@ -14,6 +14,12 @@ public class RestUtils {
                 .body(body)
                 .post(endpoint);
     }
+    public static Response put(String endpoint, String body) {
+        return RestAssured.given()
+                .header("Content-Type", "application/json")
+                .body(body)
+                .put(endpoint);
+    }
 
     public static Response postWithAuth(String endpoint, String body, String token) {
         return RestAssured.given()

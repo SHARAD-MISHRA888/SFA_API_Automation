@@ -4,6 +4,7 @@ import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 
+import javax.xml.crypto.Data;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,6 +27,19 @@ public class CombinePlanExtractor {
         }
 
         JsonPath jsonPath = response.jsonPath();
+
+        String beetJourneyPlanStatus = jsonPath.getString("bjpReportResponseList[0].beetJourneyPlanStatus");
+        String doctorJourneyPlanStatus = jsonPath.getString("doctorReportResponseList[0].doctorJourneyPlanStatus");
+        String clientFmcgJourneyPlanStatus = jsonPath.getString("cjpReportResponseList[0].clientFmcgJourneyPlanStatus");
+
+        String workingType = jsonPath.getString("bjpReportResponseList[0].workingWith");
+
+        DataStore.put("WorkingWith",workingType);
+
+
+        DataStore.put("clientFmcgJourneyPlanStatus",clientFmcgJourneyPlanStatus);
+        DataStore.put("doctorJourneyPlanStatus",doctorJourneyPlanStatus);
+        DataStore.put("beetJourneyPlanStatus",beetJourneyPlanStatus);
 
         // Extract beet logs (BJP)
         List<Integer> beetLogIds = jsonPath.getList("bjpReportResponseList.id");

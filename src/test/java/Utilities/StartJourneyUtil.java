@@ -54,4 +54,31 @@ public class StartJourneyUtil {
 
         System.out.println("Attendance Response Status Code: " + response.statusCode());
     }
+
+
+    public static void updateVehicleType(String token, Integer memberId, String vehicleType, String visitedDate) {
+
+        Response response = RestAssured.given()
+                .baseUri("https://staging.prism-sfa-dev.net")
+                .basePath("/combine-tour-plan/updateVehicleTypeByMemberId")
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .queryParam("memberId", memberId)
+                .queryParam("modeOfTransport", vehicleType)
+                .queryParam("visitDate", visitedDate)
+                .log().all()
+                .when()
+                .put()
+                .then()
+                .log().all()
+                .extract()
+                .response();
+
+        int statusCode = response.getStatusCode();
+
+        if (statusCode != 200) {
+            throw new RuntimeException("Unexpected status code: " + statusCode);
+        }
+        System.out.println("This is update vehicle response" +response);
+    }
 }

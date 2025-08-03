@@ -21,8 +21,8 @@ import java.util.Map;
 public class CreatePlanTest extends BaseTest {
 
     private String salespersonToken;
-    private final int memberId = 25;
-    private final int clientFmcgId = 8;
+    private final int memberId = 75;
+    private final int clientFmcgId = 40;
     private Map<String, List<Integer>> planIds = new HashMap<>();
 
     @Test(priority = 1)
@@ -53,8 +53,8 @@ public class CreatePlanTest extends BaseTest {
 
     @Test(priority = 3)
     public void fetchPlanIdsAfterCreation() {
-        LocalDate startDate = LocalDate.of(2025, 7, 1);
-        LocalDate endDate = LocalDate.of(2025, 7, 10);
+        LocalDate startDate = LocalDate.of(2025, 7, 18);
+        LocalDate endDate = LocalDate.of(2025, 7, 30);
 
         planIds = PlanUtils.getAllPlanIds(salespersonToken, memberId, startDate, endDate);
 
@@ -63,7 +63,7 @@ public class CreatePlanTest extends BaseTest {
         System.out.println("BJP Plan IDs: " + planIds.get("BJP"));
     }
 
-    @Test(priority = 4, dependsOnMethods = "fetchPlanIdsAfterCreation")
+   @Test(priority = 4, dependsOnMethods = "fetchPlanIdsAfterCreation")
     public void approveCreatedPlans() {
         if (planIds.isEmpty()) {
             throw new IllegalStateException("No plans found to approve. Please check previous steps.");

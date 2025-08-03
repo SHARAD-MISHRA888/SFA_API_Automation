@@ -2,6 +2,7 @@ package Utilities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
 import java.time.LocalDate;
@@ -9,7 +10,8 @@ import java.util.*;
 
 import static io.restassured.RestAssured.given;
 
-public class SyncMemberLogUtil {
+public class SyncMemberLogUtil extends RestUtils {
+
 
     public static Response syncLogsAndEndDay(String token) {
         Map<String, Object> payload = buildSyncPayload();
@@ -25,6 +27,7 @@ public class SyncMemberLogUtil {
 
     public static Map<String, Object> buildSyncPayload() {
         Map<String, Object> payload = new HashMap<>();
+        String workType = DataStore.get("workWith");
 
         // Safe defaults if keys are missing
         int memberId = DataStore.containsKey("memberId") ? getIntOrThrow("memberId") : -1;
@@ -32,9 +35,11 @@ public class SyncMemberLogUtil {
         int beetLogPlanId = DataStore.containsKey("beetLogPlanId") ? getIntOrThrow("beetLogPlanId") : -1;
 
         // Logs
-        addLogListToPayload(payload, "beetLogIds", "beetLogReqList", "beet");
-        addLogListToPayload(payload, "doctorLogIds", "doctorLogReqList", "doctor");
-        addLogListToPayload(payload, "clientLogIds", "clientFmcgLogReqList", "client");
+
+            addLogListToPayload(payload, "beetLogIds", "beetLogReqList", "beet");
+            addLogListToPayload(payload, "doctorLogIds", "doctorLogReqList", "doctor");
+            addLogListToPayload(payload, "clientLogIds", "clientFmcgLogReqList", "client");
+
 
         // Optional order and sample lists
         List<Map<String, Object>> orders = new ArrayList<>();
@@ -84,6 +89,7 @@ public class SyncMemberLogUtil {
     }
 
 
+
     private static Map<String, Object> buildLog(String logId, String type) {
         Map<String, Object> log = new HashMap<>();
         int intLogId = Integer.parseInt(logId);
@@ -125,4 +131,51 @@ public class SyncMemberLogUtil {
         }
         return val;
     }
+
+
+    public static Response updateWorkingWith(String token) {
+        // Build the payload
+        Map<String, Object> payload = updateWorkingStatus();
+
+        // Define the endpoint URL
+        String endpoint = "https://staging.prism-sfa-dev.net/combine-tour-plan/updateWorkingWithForBjpAndDjpAndCjp"; // 🔁 Replace with actual PUT endpoint
+
+        // Perform the PUT request using RestAssured
+        Response response = RestAssured.given()
+                .baseUri("https://staging.prism-sfa-dev.net/") // 🔁 Base URL
+                .basePath("/combine-tour-plan/updateWorkingWithForBjpAndDjpAndCjp")    // 🔁 Path if needed separately
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .body(payload)
+                .log().all()
+                .when()
+                .put() // PUT method
+                .then()
+                .log().all()
+                .extract()
+                .response();
+
+        return response;
+    }
+
+
+    public static Map<String,Object> updateWorkingStatus(){
+
+        Map<String,Object> payload = new HashMap<>();
+        String workType = DataStore.get("WorkingWith");
+
+        payload.put("workingWith",workType);
+        payload.put("date",LocalDate.now().toString());
+        payload.put("remark","All Completed");
+        payload.put("otherMemberIds",new ArrayList<>());
+        payload.put("memberId",DataStore.get("memberId"));
+        payload.put("getVehicleOwnerId",DataStore.get("memberId"));
+        payload.put("modeOfTransport","CAR");
+        payload.put("removedMemberIds",new ArrayList<>());
+
+        return payload;
+
+
+    }
+
 }

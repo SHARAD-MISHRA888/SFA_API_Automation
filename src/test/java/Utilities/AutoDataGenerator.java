@@ -77,6 +77,9 @@ public class AutoDataGenerator {
             Map<String, Object> doctorDto = log.containsKey("doctorRes") ? (Map<String, Object>) log.get("doctorRes") : null;
             Map<String, Object> clientDto = log.containsKey("clientFMCGResponse") ? (Map<String, Object>) log.get("clientFMCGResponse") : null;
             Map<String, Object> beetDto = log.containsKey("beet") ? (Map<String, Object>) log.get("beet") : null;
+            String workWithDto = log.containsKey("workingWith") ? (String) log.get("workingWith") : null;
+
+            DataStore.put("workWith",workWithDto);
 
 
             boolean isDoctor = log.containsKey("doctorRes");
@@ -108,9 +111,9 @@ public class AutoDataGenerator {
          //  if (clientId == null) continue;   // Agar client null hoga tab vo next loop mein chala jayega aur is line ka code execute nahi hoga , Tabhi doctor ke liye nahi create ho rha hai
 
             // ----------------- BJP: Orders + Samples -----------------
-            if (isOutlet) {
+            if ((isOutlet && workWithDto.equals("Self")) || workWithDto.equals("Member")) {
                 if (!productInventoryCache.containsKey(clientId) && clientId != null) {
-                    System.out.println("Here is the client id........"+clientId);
+//                    System.out.println("Here is the client id........"+clientId);
                     List<Map<String, Object>> inventory = fetchProductInventory(clientId, token);
                     productInventoryCache.put(clientId, inventory);
                 }
@@ -186,7 +189,7 @@ public class AutoDataGenerator {
             }
 
             // ----------------- DJP: Samples only -----------------
-            if (isDoctor) {
+            if ((isDoctor && workWithDto.equals("Self")) || workWithDto.equals("Member")) {
                 Integer doctorId = doctorDto != null && doctorDto.containsKey("id") ? (Integer) doctorDto.get("id") : null;
                 if (doctorId != null) {
                     for (Map<String, Object> sample : sampleInventory) {
@@ -213,7 +216,7 @@ public class AutoDataGenerator {
             }
 
             // ----------------- CJP: Orders (10 cases) + Samples -----------------
-            if (isClient) {
+            if ((isClient && workWithDto.equals("Self")) || workWithDto.equals("Member")) {
 
                 List<Map<String,Object>> orderList = new ArrayList<>();
 
