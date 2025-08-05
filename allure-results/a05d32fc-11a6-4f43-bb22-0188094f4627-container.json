@@ -1,1 +1,0 @@
-{"uuid":"a05d32fc-11a6-4f43-bb22-0188094f4627","name":"tests.CreatePlanTest","children":["c4a77bf6-cbd8-466b-aa57-adaed6d31f02"],"befores":[{"name":"setup","status":"passed","stage":"finished","description":"","steps":[],"attachments":[],"parameters":[],"start":1750660016907,"stop":1750660017736}],"afters":[],"start":1750660016747,"stop":1750660025192}

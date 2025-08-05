@@ -1,7 +1,6 @@
 package Utilities;
 
 import io.restassured.RestAssured;
-import io.restassured.response.Response;
 
 public class AuthUtils {
     public static String login(String mobile, String password) {

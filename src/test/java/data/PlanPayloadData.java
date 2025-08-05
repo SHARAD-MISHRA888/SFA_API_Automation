@@ -1,21 +1,24 @@
 package data;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PlanPayloadData {
 
     public static Map<String, Object> getSmartDailyPlanPayload(int memberId, int clientFmcgId) {
-        LocalDate today = LocalDate.of(2025,7,18);
-        LocalDate endDate = LocalDate.of(2025, 7, 30);
+        LocalDate today = LocalDate.of(2025,8,5);
+        LocalDate endDate = LocalDate.of(2025, 8, 30);
 
         List<Map<String, Object>> doctorPlanList = new ArrayList<>();
         List<Map<String, Object>> clientFmcgPlanList = new ArrayList<>();
 
 
         List<String> workTypes = List.of("Self", "Admin_Work", "Member", "Meeting", "HO_Meeting", "Transit");
-        List<Integer> selfBeetIds = List.of(37);
-        int otherBeetId = 36;
+        List<Integer> selfBeetIds = List.of(1,38);
+        int otherBeetId = 7;
 
         int index = 0;
         LocalDate current = today;
@@ -42,7 +45,7 @@ public class PlanPayloadData {
             clientFmcgPlan.put("beetId", beetId);
             clientFmcgPlan.put("clientFmcgId", clientFmcgId);
             clientFmcgPlan.put("workingWith", workType);
-            clientFmcgPlan.put("dateList", List.of(dateStr));
+            clientFmcgPlan.put("dateList",dateStr);
             clientFmcgPlan.put("otherMemberIds", otherMemberIds);
 
             // Doctor Journey Plan block
@@ -50,7 +53,7 @@ public class PlanPayloadData {
             doctorPlan.put("memberId", memberId);
             doctorPlan.put("startDate", dateStr);
             doctorPlan.put("endDate", dateStr);
-            doctorPlan.put("daysOfWeek", List.of(current.getDayOfWeek().name()));
+            doctorPlan.put("daysOfWeek",current.getDayOfWeek().name());
             doctorPlan.put("beetId", beetId);
             doctorPlan.put("workingWith", workType);
             doctorPlan.put("recurrenceType", "Daily");

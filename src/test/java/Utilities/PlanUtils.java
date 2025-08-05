@@ -1,6 +1,5 @@
 package Utilities;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
@@ -10,10 +9,10 @@ import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
 
-public class PlanUtils {
+public class PlanUtils extends RestUtils {
 
 
-    public static Map<String, List<Integer>> getAllPlanIds(String token, int memberId, LocalDate startDate, LocalDate endDate) {
+    public static Map<String, List<Integer>> getAllPlanIds( int memberId, LocalDate startDate, LocalDate endDate) {
         String baseUri = "https://staging.prism-sfa-dev.net";
 
         String fullUrl = "/combine-tour-plan/findByStartAndEndDateByMemberIdForBjpAndDjpAndCjp/" +
@@ -23,7 +22,7 @@ public class PlanUtils {
 
         Response response = given()
                 .baseUri(baseUri)
-                .header("Authorization", "Bearer " + token)
+                .header("Authorization", "Bearer " +SALESPERSON_TOKEN)
                 .header("accept", "application/hal+json")
                 .get(fullUrl);
 
