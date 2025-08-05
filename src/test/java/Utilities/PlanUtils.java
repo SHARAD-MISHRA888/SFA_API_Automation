@@ -10,9 +10,7 @@ import java.util.stream.Collectors;
 import static io.restassured.RestAssured.given;
 
 public class PlanUtils extends RestUtils {
-
-
-    public static Map<String, List<Integer>> getAllPlanIds( int memberId, LocalDate startDate, LocalDate endDate) {
+    public static Map<String, List<Integer>> getAllPlanIds( String token,int memberId, LocalDate startDate, LocalDate endDate) {
         String baseUri = "https://staging.prism-sfa-dev.net";
 
         String fullUrl = "/combine-tour-plan/findByStartAndEndDateByMemberIdForBjpAndDjpAndCjp/" +
@@ -22,7 +20,7 @@ public class PlanUtils extends RestUtils {
 
         Response response = given()
                 .baseUri(baseUri)
-                .header("Authorization", "Bearer " +SALESPERSON_TOKEN)
+                .header("Authorization", "Bearer " +token)
                 .header("accept", "application/hal+json")
                 .get(fullUrl);
 

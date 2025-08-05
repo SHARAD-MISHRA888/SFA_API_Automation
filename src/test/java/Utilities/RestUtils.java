@@ -49,7 +49,7 @@ public class RestUtils {
 
     public static String login(String mobile, String password) {
         String payload = "{ \"mobile\": \"" + mobile + "\", \"password\": \"" + password + "\"}";
-        String SALESPERSON_TOKEN = RestAssured.given()
+         SALESPERSON_TOKEN = RestAssured.given()
                 .header("Content-Type", "application/json")
                 .body(payload)
                 .post("/authenticate")
@@ -60,4 +60,8 @@ public class RestUtils {
         System.out.println("Token received: " + SALESPERSON_TOKEN);
         return SALESPERSON_TOKEN;
     }
+    public static void resetToken() {
+        SALESPERSON_TOKEN = null;
+    }
+
 }
