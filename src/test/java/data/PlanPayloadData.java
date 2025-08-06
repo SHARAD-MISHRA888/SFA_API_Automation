@@ -1,15 +1,13 @@
 package data;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.*;
 
 public class PlanPayloadData {
 
     public static Map<String, Object> getSmartDailyPlanPayload(int memberId, int clientFmcgId) {
-        LocalDate today = LocalDate.of(2025,8,5);
+        LocalDate today = LocalDate.of(2025,8,7);
         LocalDate endDate = LocalDate.of(2025, 8, 30);
 
         List<Map<String, Object>> doctorPlanList = new ArrayList<>();
@@ -17,14 +15,20 @@ public class PlanPayloadData {
 
 
         List<String> workTypes = List.of("Self", "Admin_Work", "Member", "Meeting", "HO_Meeting", "Transit");
-        List<Integer> selfBeetIds = List.of(1,38);
-        int otherBeetId = 7;
+        List<Integer> selfBeetIds = List.of(38);
+        int otherBeetId = 36;
 
         int index = 0;
         LocalDate current = today;
 
+
         while (!current.isAfter(endDate)) {
-            String dateStr = current.atStartOfDay().toString();
+            List<LocalDateTime> localDateTimeList = new ArrayList<>();
+            List<String> daysOfWeek = new ArrayList<>();
+            String dayWeek = String.valueOf(current.getDayOfWeek());
+            daysOfWeek.add(dayWeek);
+            LocalDateTime dateStr = current.atStartOfDay();
+            localDateTimeList.add(dateStr);
             String workType = workTypes.get(index % workTypes.size());
 
             int beetId;
@@ -45,7 +49,7 @@ public class PlanPayloadData {
             clientFmcgPlan.put("beetId", beetId);
             clientFmcgPlan.put("clientFmcgId", clientFmcgId);
             clientFmcgPlan.put("workingWith", workType);
-            clientFmcgPlan.put("dateList",dateStr);
+            clientFmcgPlan.put("dateList",localDateTimeList);
             clientFmcgPlan.put("otherMemberIds", otherMemberIds);
 
             // Doctor Journey Plan block
@@ -53,7 +57,7 @@ public class PlanPayloadData {
             doctorPlan.put("memberId", memberId);
             doctorPlan.put("startDate", dateStr);
             doctorPlan.put("endDate", dateStr);
-            doctorPlan.put("daysOfWeek",current.getDayOfWeek().name());
+            doctorPlan.put("daysOfWeek",daysOfWeek);
             doctorPlan.put("beetId", beetId);
             doctorPlan.put("workingWith", workType);
             doctorPlan.put("recurrenceType", "Daily");

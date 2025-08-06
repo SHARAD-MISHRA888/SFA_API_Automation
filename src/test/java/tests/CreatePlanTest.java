@@ -5,6 +5,8 @@ import Utilities.RestUtils;
 import base.BaseTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import data.PlanPayloadData;
 import org.testng.annotations.Test;
 
@@ -20,18 +22,23 @@ public class CreatePlanTest extends BaseTest {
     private Map<String, List<Integer>> planIds = new HashMap<>();
 
    @Test(priority = 1)
-    public void createPlanWithDynamicPayload() throws JsonProcessingException {
-        Map<String, Object> payload = PlanPayloadData.getSmartDailyPlanPayload(memberId, clientFmcgId);
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonPayload = mapper.writeValueAsString(payload);
-        System.out.println("Plan Creation Payload:\n" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload));
-        RestUtils.post("/combine-tour-plan/createCombineTourPlanInBulk",jsonPayload).then().statusCode(200);
+   public void createPlanWithDynamicPayload() throws JsonProcessingException {
+       Map<String, Object> payload = PlanPayloadData.getSmartDailyPlanPayload(memberId, clientFmcgId);
 
-    }
+       ObjectMapper mapper = new ObjectMapper();
+       mapper.registerModule(new JavaTimeModule());
+       mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // Optional for ISO-8601 format
+
+       String jsonPayload = mapper.writeValueAsString(payload);
+       System.out.println("Plan Creation Payload:\n" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload));
+
+       RestUtils.post("/combine-tour-plan/createCombineTourPlanInBulk", jsonPayload).then().statusCode(200);
+   }
+
 
     @Test(priority = 2)
     public void fetchPlanIdsAfterCreation() {
-        LocalDate startDate = LocalDate.of(2025, 8, 5);
+        LocalDate startDate = LocalDate.of(2025, 8, 7);
         LocalDate endDate = LocalDate.of(2025, 8, 30);
         planIds = PlanUtils.getAllPlanIds(RestUtils.SALESPERSON_TOKEN,memberId, startDate, endDate);
         System.out.println("DJP Plan IDs: " + planIds.get("DJP"));

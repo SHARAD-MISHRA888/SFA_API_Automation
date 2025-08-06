@@ -42,6 +42,12 @@
         </dependency>
 
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.17.1</version> <!-- Use the latest version matching your Jackson core version -->
+        </dependency>
+
 
 
     </dependencies>
