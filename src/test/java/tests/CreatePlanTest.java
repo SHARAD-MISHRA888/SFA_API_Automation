@@ -33,8 +33,7 @@ public class CreatePlanTest extends BaseTest {
     public void fetchPlanIdsAfterCreation() {
         LocalDate startDate = LocalDate.of(2025, 8, 5);
         LocalDate endDate = LocalDate.of(2025, 8, 30);
-        planIds = PlanUtils.getAllPlanIds(memberId, startDate, endDate);
-
+        planIds = PlanUtils.getAllPlanIds(RestUtils.SALESPERSON_TOKEN,memberId, startDate, endDate);
         System.out.println("DJP Plan IDs: " + planIds.get("DJP"));
         System.out.println("CJP Plan IDs: " + planIds.get("CJP"));
         System.out.println("BJP Plan IDs: " + planIds.get("BJP"));

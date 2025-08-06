@@ -1,19 +1,23 @@
 package base;
 
-import Utilities.AuthUtils;
-import io.restassured.RestAssured;
+import Utilities.RestUtils;
+import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeClass;
+
+import static Utilities.RestUtils.SALESPERSON_TOKEN;
 
 public class BaseTest {
     @BeforeClass
-    public void setup() {
-        RestAssured.baseURI = "https://staging.prism-sfa-dev.net/";
-
-
+    public void setUp() {
+        if (SALESPERSON_TOKEN == null) {
+            RestUtils.login("9918401438", "Test@123");
+        }
+        if (SALESPERSON_TOKEN == null) {
+            throw new RuntimeException("Token was not generated. Check login.");
+        }
     }
-    protected String salespersonToken;
-
-    public void loginAsSalesperson() {
-        salespersonToken = AuthUtils.login("9918401438", "Test@123");
+    @AfterSuite
+    public void tearDown() {
+        RestUtils.resetToken();
     }
 }
