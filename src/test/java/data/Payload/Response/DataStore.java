@@ -1,4 +1,4 @@
-package Utilities;
+package data.Payload.Response;
 
 import java.util.HashMap;
 import java.util.List;

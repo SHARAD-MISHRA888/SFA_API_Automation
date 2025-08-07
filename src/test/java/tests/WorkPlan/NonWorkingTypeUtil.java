@@ -1,5 +1,6 @@
-package Utilities;
+package tests.WorkPlan;
 
+import data.Payload.Response.DataStore;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
@@ -66,30 +67,22 @@ public class NonWorkingTypeUtil {
 
         Map<String, Object> payload = new HashMap<>();
 
-      // List<Integer> clientLogId = DataStore.get("clientLogIds");
+       List<Integer> clientLogId = DataStore.get("clientLogIds");
        List<Integer> doctorLogId = DataStore.get("doctorLogIds");
        List<Integer> beatLogId = DataStore.get("beetLogIds");
 
-       String beetJourneyPlanStatus = DataStore.get("beetJourneyPlanStatus");
-       String doctorJourneyPlanStatus = DataStore.get("doctorJourneyPlanStatus");
-       String clientFmcgJourneyPlanStatus = DataStore.get("clientFmcgJourneyPlanStatus");
-
-        System.out.println("Status Print"+beetJourneyPlanStatus);
-
-
-
         String workType = DataStore.get("workWith");
-      //  payload.put("cjpId",clientLogId.get(0));
-        payload.put("bjpId",doctorLogId.get(0));
-        payload.put("djpId",beatLogId.get(0));
+        payload.put("cjpId",clientLogId.get(0));
+        payload.put("bjpId",beatLogId.get(0));
+        payload.put("djpId",doctorLogId.get(0));
         payload.put("remark","Today's assigned work is completed");
-        if (workType.equals("Self")){
+        if (workType.equals("Transit")){
             payload.put("modeOfTransport","CAR");
             payload.put("distance",5);
         }
-        payload.put("beetJourneyPlanStatus",beetJourneyPlanStatus);
-        payload.put("doctorJourneyPlanStatus",doctorJourneyPlanStatus);
-        payload.put("clientFmcgJourneyPlanStatus",clientFmcgJourneyPlanStatus);
+        payload.put("beetJourneyPlanStatus","Completed");
+        payload.put("doctorJourneyPlanStatus","Completed");
+        payload.put("clientFmcgJourneyPlanStatus","Completed");
 
         return payload;
 

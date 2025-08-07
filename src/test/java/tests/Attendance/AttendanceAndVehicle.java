@@ -1,4 +1,4 @@
-package Utilities;
+package tests.Attendance;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -7,7 +7,7 @@ import io.restassured.response.Response;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StartJourneyUtil {
+public class AttendanceAndVehicle {
 
     public static String uploadAttendanceImage(String base64Image, String token) {
         Map<String, String> payload = new HashMap<>();
@@ -79,6 +79,6 @@ public class StartJourneyUtil {
         if (statusCode != 200) {
             throw new RuntimeException("Unexpected status code: " + statusCode);
         }
-        System.out.println("This is update vehicle response" +response);
+        System.out.println("This is update vehicle response" +response.prettyPrint());
     }
 }

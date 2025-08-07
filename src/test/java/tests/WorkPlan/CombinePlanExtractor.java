@@ -1,5 +1,6 @@
-package Utilities;
+package tests.WorkPlan;
 
+import data.Payload.Response.DataStore;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;

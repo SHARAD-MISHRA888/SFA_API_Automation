@@ -1,6 +1,8 @@
-package Utilities;
+package tests.Sync;
 
+import Utilities.RestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import data.Payload.Response.DataStore;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
