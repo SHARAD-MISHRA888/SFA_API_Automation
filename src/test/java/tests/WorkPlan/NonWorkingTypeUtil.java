@@ -4,6 +4,7 @@ import data.Payload.Response.DataStore;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
+import java.io.Console;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +43,8 @@ public class NonWorkingTypeUtil {
         // Build the payload
         Map<String, Object> payload = buildExpensePayloadForNonWorking();
 
+        System.out.println("Non Working EMP Expense Payload  "+payload);
+
         // Define the endpoint URL
         String endpoint = "https://staging.prism-sfa-dev.net/createExpenseWithModeOfTravelAndDA"; // 🔁 Replace with actual PUT endpoint
 
@@ -78,7 +81,7 @@ public class NonWorkingTypeUtil {
         payload.put("remark","Today's assigned work is completed");
         if (workType.equals("Transit")){
             payload.put("modeOfTransport","CAR");
-            payload.put("distance",5);
+            payload.put("distance",5000);
         }
         payload.put("beetJourneyPlanStatus","Completed");
         payload.put("doctorJourneyPlanStatus","Completed");
@@ -101,7 +104,7 @@ public class NonWorkingTypeUtil {
         payload.put("otherMemberIds", new ArrayList<>());
         payload.put("modeOfTransport","CAR");
         payload.put("adminStatus","ACCEPTED");
-        payload.put("totalDistance",5);
+        payload.put("totalDistance",5000);
 
         return payload;
     }

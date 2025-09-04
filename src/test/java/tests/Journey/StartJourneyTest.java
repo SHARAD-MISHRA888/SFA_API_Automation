@@ -20,19 +20,27 @@ import static Utilities.RestUtils.BASE64_IMAGE;
 import static Utilities.RestUtils.SALESPERSON_TOKEN;
 @Slf4j
 public class StartJourneyTest extends BaseTest {
-    private static final String visitDate = "2025-08-07";
+    private static final String visitDate = "2025-09-03";
     private static final Logger log = LoggerFactory.getLogger(StartJourneyTest.class);
 
     @DataProvider(name = "memberDataProvider")
     public Object[][] memberDataProvider() {
         log.info("Under Data-Provider method--MEMBER_ID,REPORTING_MANAGER_ID");
         return new Object[][] {
-                {43,41},
+//                {23,20},
+   //            {22,21},
+ //               {25,21},
+//                {9,7},
+//                {10,7},
+                {75,7}
+//                {110,6},
+//                {11,8},
+//                {12,8}
         };
     }
 
     @Test(dataProvider = "memberDataProvider")
-    public void startJourneyFlowForMember(int memberId, int reportingManagerId) {
+    public void startJourneyFlowForMember(int memberId, int reportingManagerId) throws InterruptedException {
         log.info("Start and complete journey for today for salesperson");
         DataStore.clear(); // Ensure clean state for each member run
         System.out.println("==== Starting Journey for MemberID: " + memberId + " ====");
@@ -49,6 +57,7 @@ public class StartJourneyTest extends BaseTest {
         CombinePlanExtractor.extractAllLogsAndPlanIds(SALESPERSON_TOKEN, memberId, visitDate);
         log.info("Generate Order and Sample Data");
         AutoDataGenerator.generateOrderAndSampleData(SALESPERSON_TOKEN, memberId);
+        Thread.sleep(2000);
         log.info("Sync Logs and End Day (Handle Working/Non-Working Day)");
         String workType = DataStore.get("workWith");
         if (!"Self".equalsIgnoreCase(workType) && !"Member".equalsIgnoreCase(workType)) {
@@ -61,6 +70,7 @@ public class StartJourneyTest extends BaseTest {
         } else {
             System.out.println("Working Day for workType: " + workType);
             SyncMemberLogUtil.printPayloadForDebugging();
+            Thread.sleep(2000);
             Response response = SyncMemberLogUtil.syncLogsAndEndDay(SALESPERSON_TOKEN);
             SyncMemberLogUtil.updateWorkingWith(SALESPERSON_TOKEN);
             response.prettyPrint();

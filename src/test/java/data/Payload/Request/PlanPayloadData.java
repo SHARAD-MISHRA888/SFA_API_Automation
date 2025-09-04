@@ -7,15 +7,15 @@ import java.util.*;
 public class PlanPayloadData {
 
     public static Map<String, Object> getSmartDailyPlanPayload(int memberId, int clientFmcgId) {
-        LocalDate today = LocalDate.of(2025,8,7);
-        LocalDate endDate = LocalDate.of(2025, 8, 30);
+        LocalDate today = LocalDate.of(2025,8,12);
+        LocalDate endDate = LocalDate.of(2025, 8, 31);
 
         List<Map<String, Object>> doctorPlanList = new ArrayList<>();
         List<Map<String, Object>> clientFmcgPlanList = new ArrayList<>();
 
 
         List<String> workTypes = List.of("Self", "Admin_Work", "Member", "Meeting", "HO_Meeting", "Transit");
-        List<Integer> selfBeetIds = List.of(38);
+        List<Integer> selfBeetIds = List.of(9);
         int otherBeetId = 36;
 
         int index = 0;
@@ -37,7 +37,7 @@ public class PlanPayloadData {
             if (workType.equals("Self") || workType.equals("Member")) {
                 beetId = selfBeetIds.get(index % selfBeetIds.size()); // alternate between 1 and 38
                 if (workType.equals("Member")) {
-                    otherMemberIds = List.of(7); // only for Member
+                    otherMemberIds = List.of(20); // only for Member
                 }
             } else {
                 beetId = otherBeetId; // for all other workTypes

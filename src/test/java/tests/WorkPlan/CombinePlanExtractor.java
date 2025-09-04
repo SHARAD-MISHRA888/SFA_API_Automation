@@ -5,6 +5,7 @@ import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +33,53 @@ public class CombinePlanExtractor {
         String doctorJourneyPlanStatus = jsonPath.getString("doctorReportResponseList[0].doctorJourneyPlanStatus");
         String clientFmcgJourneyPlanStatus = jsonPath.getString("cjpReportResponseList[0].clientFmcgJourneyPlanStatus");
 
+
+        List<Map<String, Object>> bjpList = response.jsonPath().getList("bjpReportResponseList");
+        List<Map<String, Object>> djpList = response.jsonPath().getList("doctorReportResponseList");
+        List<Map<String, Object>> cjpList = response.jsonPath().getList("cjpReportResponseList");
+
+        List<Map<String, Object>> allLogs = new ArrayList<>();
+        if (bjpList != null) allLogs.addAll(bjpList);
+        if (djpList != null) allLogs.addAll(djpList);
+        if (cjpList != null) allLogs.addAll(cjpList);
+
+        for (Map<String, Object> log : allLogs) {
+            Map<String, Object> outletDto = log.containsKey("outletGetDto") ? (Map<String, Object>) log.get("outletGetDto") : null;
+            Map<String, Object> doctorDto = log.containsKey("doctorRes") ? (Map<String, Object>) log.get("doctorRes") : null;
+            Map<String, Object> clientDto = log.containsKey("clientFMCGResponse") ? (Map<String, Object>) log.get("clientFMCGResponse") : null;
+            Map<String, Object> beetDto = log.containsKey("beet") ? (Map<String, Object>) log.get("beet") : null;
+            String workWithDto = log.containsKey("workingWith") ? (String) log.get("workingWith") : null;
+
+            String outletLat = (outletDto != null && outletDto.containsKey("latitude"))
+                    ? outletDto.get("latitude").toString()
+                    : null;
+            String outletLong = (outletDto != null && outletDto.containsKey("longitude"))
+                    ? outletDto.get("longitude").toString()
+                    : null;
+            String docLat = (doctorDto != null && doctorDto.containsKey("latitude"))
+                    ? doctorDto.get("latitude").toString() :
+                    null;
+            String docLong = (doctorDto != null && doctorDto.containsKey("longitude"))
+                    ? doctorDto.get("longitude").toString() :
+                    null;
+            String clientLat = (clientDto != null && clientDto.containsKey("latitude"))
+                    ? clientDto.get("latitude").toString() :
+                    null;
+            String clientLong = (clientLat != null && clientDto.containsKey("longitude"))
+                    ? clientDto.get("longitude").toString() :
+                    null;
+
+            DataStore.put("outletLat", outletLat);
+            DataStore.put("OutletLong", outletLong);
+            DataStore.put("docLat", docLat);
+            DataStore.put("docLong", docLong);
+            DataStore.put("clientLat", clientLat);
+            DataStore.put("clientLong", clientLong);
+        }
+
+
+
+
         String workingType = jsonPath.getString("bjpReportResponseList[0].workingWith");
 
         DataStore.put("WorkingWith",workingType);
@@ -52,7 +100,6 @@ public class CombinePlanExtractor {
         }
 
 
-        List<Map<String, Object>> bjpList = jsonPath.getList("bjpReportResponseList");
         if (bjpList != null && !bjpList.isEmpty()) {
             Map<String, Object> firstItem = bjpList.get(0);
             Map<String, Object> beet = (Map<String, Object>) firstItem.get("beet");

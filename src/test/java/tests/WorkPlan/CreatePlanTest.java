@@ -20,8 +20,8 @@ import java.util.Map;
 @Slf4j
 public class CreatePlanTest extends BaseTest {
     private static final Logger log = LoggerFactory.getLogger(CreatePlanTest.class);
-    private final int memberId = 10;
-    private final int clientFmcgId = 1 ;
+    private final int memberId = 23;
+    private final int clientFmcgId = 13;
     private Map<String, List<Integer>> planIds = new HashMap<>();
 
    @Test(priority = 1)
@@ -38,14 +38,15 @@ public class CreatePlanTest extends BaseTest {
        System.out.println("Plan Creation Payload:\n" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload));
 
        RestUtils.post("/combine-tour-plan/createCombineTourPlanInBulk", jsonPayload).then().statusCode(200);
+       System.out.println();
    }
 
 
     @Test(priority = 2)
     public void fetchPlanIdsAfterCreation() {
        log.info("Found planId's between given start and end date");
-        LocalDate startDate = LocalDate.of(2025, 8, 7);
-        LocalDate endDate = LocalDate.of(2025, 8, 30);
+        LocalDate startDate = LocalDate.of(2025, 8, 12);
+        LocalDate endDate = LocalDate.of(2025, 8, 31);
         planIds = PlanUtils.getAllPlanIds(RestUtils.SALESPERSON_TOKEN,memberId, startDate, endDate);
         System.out.println("DJP Plan IDs: " + planIds.get("DJP"));
         System.out.println("CJP Plan IDs: " + planIds.get("CJP"));

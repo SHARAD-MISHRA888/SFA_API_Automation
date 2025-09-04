@@ -1,7 +1,19 @@
-<suite name="API Automation Suite">
-    <test name="Happy Flow Tests">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="All Test Suite">
+
+    <test verbose="2" preserve-order="true"
+          name="/Users/sharadmishra/IdeaProjects/SFA_API_Automation">
+
         <classes>
-            <class name="tests.WorkPlan.CreatePlanTest" />
+
+            <class name="tests.Journey.StartJourneyTest">
+                <methods>
+                    <include name="startJourneyFlowForMember"/>
+                </methods>
+            </class>
+
         </classes>
     </test>
+
 </suite>

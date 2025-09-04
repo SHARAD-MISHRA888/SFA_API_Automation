@@ -1,0 +1,1 @@
+{"uuid":"1aa06780-a78c-4043-8fc2-d14c3c32ff3a","name":"tests.Journey.StartJourneyTest","children":["ca502da1-5099-45cd-aab4-b6f111c6df25"],"befores":[{"name":"setUp","status":"passed","stage":"finished","description":"","steps":[],"attachments":[],"parameters":[],"start":1754993197554,"stop":1754993200701}],"afters":[],"start":1754993197472,"stop":1754993211073}

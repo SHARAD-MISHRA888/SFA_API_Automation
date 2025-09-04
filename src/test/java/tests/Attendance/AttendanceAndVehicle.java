@@ -52,7 +52,17 @@ public class AttendanceAndVehicle {
                 .log().all()
                 .extract().response();
 
-        System.out.println("Attendance Response Status Code: " + response.statusCode());
+       try {
+           int statusCode = response.statusCode();
+           if (statusCode != 200){
+               throw new RuntimeException("Unexpected status code"+statusCode);
+           }
+           System.out.println("Status Code"+statusCode);
+
+       }catch (Exception e){
+           e.printStackTrace();
+       }
+
     }
 
 

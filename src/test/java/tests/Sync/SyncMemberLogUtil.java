@@ -2,20 +2,22 @@ package tests.Sync;
 
 import Utilities.RestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import data.Payload.Request.AutoDataGenerator;
 import data.Payload.Response.DataStore;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import static io.restassured.RestAssured.given;
 
 public class SyncMemberLogUtil extends RestUtils {
 
+    private static Random random = new Random();
+    private static LocalDateTime currentTime = LocalDateTime.of(2025, 7, 3, 10, 0);
 
     public static Response syncLogsAndEndDay(String token) {
         Map<String, Object> payload = buildSyncPayload();
@@ -97,10 +99,40 @@ public class SyncMemberLogUtil extends RestUtils {
     private static Map<String, Object> buildLog(String logId, String type) {
         Map<String, Object> log = new HashMap<>();
         int intLogId = Integer.parseInt(logId);
-        log.put("latitude", 26.4448);
-        log.put("longitude", 80.3686);
-        log.put("checkIn", "2025-07-03T10:00:00.000Z");
-        log.put("checkOut", "2025-07-03T11:00:00.000Z");
+
+
+        LocalDateTime checkIn = currentTime.plusMinutes(random.nextInt(15));
+        LocalDateTime checkOut = checkIn.plusMinutes(30 + random.nextInt(30));
+        currentTime = checkOut.plusMinutes(10);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
+
+
+        String lat = null;
+        String lon = null;
+
+
+        if ("outlet".equalsIgnoreCase(type)) {
+            lat = (String) DataStore.get("outletLat");
+            lon = (String) DataStore.get("outletLong");
+        } else if ("doctor".equalsIgnoreCase(type)) {
+            lat = (String) DataStore.get("docLat");
+            lon = (String) DataStore.get("docLong");
+        } else if ("client".equalsIgnoreCase(type)) {
+            lat = (String) DataStore.get("clientLat");
+            lon = (String) DataStore.get("clientLong");
+        }
+
+        if (lat == null || lon == null) {
+            lat = "26.4448";  // default Kanpur lat
+            lon = "80.3686";  // default Kanpur lon
+        }
+
+        log.put("latitude", lat);
+        log.put("longitude", lon);
+        log.put("checkIn", checkIn.format(formatter));
+        log.put("checkOut", checkOut.format(formatter));
         log.put("remark", "");
         log.put("remainder", false);
         log.put("remainderDate", null);

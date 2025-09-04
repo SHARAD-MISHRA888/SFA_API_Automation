@@ -5,11 +5,13 @@ import data.Payload.Response.DataStore;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
+import javax.xml.crypto.Data;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
 
 public class AutoDataGenerator {
+
 
     public static void generateOrderAndSampleData(String token, int memberId) {
 
@@ -22,6 +24,8 @@ public class AutoDataGenerator {
         List<Map<String, Object>> bjpList = response.jsonPath().getList("bjpReportResponseList");
         List<Map<String, Object>> djpList = response.jsonPath().getList("doctorReportResponseList");
         List<Map<String, Object>> cjpList = response.jsonPath().getList("cjpReportResponseList");
+
+
 
 
         Map<String, Object> firstDoctorLog = djpList.get(0);
@@ -78,6 +82,32 @@ public class AutoDataGenerator {
             Map<String, Object> clientDto = log.containsKey("clientFMCGResponse") ? (Map<String, Object>) log.get("clientFMCGResponse") : null;
             Map<String, Object> beetDto = log.containsKey("beet") ? (Map<String, Object>) log.get("beet") : null;
             String workWithDto = log.containsKey("workingWith") ? (String) log.get("workingWith") : null;
+
+//            String outletLat = (outletDto != null && outletDto.containsKey("latitude"))
+//                    ? outletDto.get("latitude").toString()
+//                    : null;
+//            String outletLong = (outletDto != null && outletDto.containsKey("longitude"))
+//                    ? outletDto.get("longitude").toString()
+//                    : null;
+//            String docLat = (doctorDto != null && doctorDto.containsKey("latitude"))
+//                    ? doctorDto.get("latitude").toString() :
+//                    null;
+//            String docLong = (doctorDto !=null && doctorDto.containsKey("longitude"))
+//                    ? doctorDto.get("longitude").toString() :
+//                    null;
+//            String clientLat =(clientDto !=null && clientDto.containsKey("latitude"))
+//                    ? clientDto.get("latitude").toString() :
+//                    null;
+//            String clientLong = (clientLat !=null && clientDto.containsKey("longitude"))
+//                    ? clientDto.get("longitude").toString() :
+//                    null;
+//
+//            DataStore.put("outletLat",outletLat);
+//            DataStore.put("OutletLong",outletLong);
+//            DataStore.put("docLat",docLat);
+//            DataStore.put("docLong",docLong);
+//            DataStore.put("clientLat",clientLat);
+//            DataStore.put("clientLong",clientLong);
 
             DataStore.put("workWith",workWithDto);
 
@@ -229,7 +259,7 @@ public class AutoDataGenerator {
                     Map<String, Object> order = new HashMap<>();
                     order.put("productId", productId);
                     order.put("quantity", 10);
-                    order.put("bundleType", "Cases");
+                    order.put("bundleType","Cases");
                     order.put("clientId", clientId);
                     order.put("beetId", beetId);
                     order.put("clientLogId", logId);
