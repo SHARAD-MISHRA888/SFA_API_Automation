@@ -1,6 +1,7 @@
 package tests.WorkPlan;
 
 import data.Payload.Response.DataStore;
+import endpoints.Endpoints;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 
@@ -17,13 +18,10 @@ public class NonWorkingTypeUtil {
         // Build the payload
         Map<String, Object> payload = buildNonWorkingPayload();
 
-        // Define the endpoint URL
-        String endpoint = "https://staging.prism-sfa-dev.net/combine-tour-plan/updateBjpAndCjpAndDjpDistance"; // 🔁 Replace with actual PUT endpoint
-
         // Perform the PUT request using RestAssured
         Response response = RestAssured.given()
-                .baseUri("https://staging.prism-sfa-dev.net/") // 🔁 Base URL
-                .basePath("/combine-tour-plan/updateBjpAndCjpAndDjpDistance")    // 🔁 Path if needed separately
+                .baseUri(Endpoints.BASE_URL) // Base URL
+                .basePath(Endpoints.Update_Distance)    // Path if needed separately
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
                 .body(payload)
@@ -45,13 +43,10 @@ public class NonWorkingTypeUtil {
 
         System.out.println("Non Working EMP Expense Payload  "+payload);
 
-        // Define the endpoint URL
-        String endpoint = "https://staging.prism-sfa-dev.net/createExpenseWithModeOfTravelAndDA"; // 🔁 Replace with actual PUT endpoint
-
         // Perform the PUT request using RestAssured
         Response response = RestAssured.given()
-                .baseUri("https://staging.prism-sfa-dev.net/") // 🔁 Base URL
-                .basePath("/createExpenseWithModeOfTravelAndDA")    // 🔁 Path if needed separately
+                .baseUri(Endpoints.BASE_URL) // 🔁 Base URL
+                .basePath(Endpoints.Generate_Expense)    // 🔁 Path if needed separately
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
                 .body(payload)

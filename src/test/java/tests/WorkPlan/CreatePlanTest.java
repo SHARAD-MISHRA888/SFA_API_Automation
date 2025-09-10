@@ -2,7 +2,10 @@ package tests.WorkPlan;
 
 import Utilities.PlanUtils;
 import Utilities.RestUtils;
+import Utilities.DBUtility;
 import base.BaseTest;
+import config.MemberConfigLoader;
+import endpoints.Endpoints;
 import lombok.extern.slf4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,50 +22,79 @@ import java.util.Map;
 
 @Slf4j
 public class CreatePlanTest extends BaseTest {
-    private static final Logger log = LoggerFactory.getLogger(CreatePlanTest.class);
-    private final int memberId = 23;
-    private final int clientFmcgId = 13;
-    private Map<String, List<Integer>> planIds = new HashMap<>();
+//    private static final Logger log = LoggerFactory.getLogger(CreatePlanTest.class);
+    private final Map<String, Map<String, List<Integer>>> planIdsPerMember = new HashMap<>();
+    private static final String MEMBERS_CONFIG_PATH = "src/test/resources/members-config.json";
+    private List<String> memberMobiles;
 
-   @Test(priority = 1)
+
+    @Test(priority = 1)
    public void createPlanWithDynamicPayload() throws JsonProcessingException {
 
-       log.info("Here wa are creating plan with dynamic payload");
-       Map<String, Object> payload = PlanPayloadData.getSmartDailyPlanPayload(memberId, clientFmcgId);
+       log.info("Creating plans for members from config: {}", MEMBERS_CONFIG_PATH);
+        memberMobiles = MemberConfigLoader.loadMemberMobiles(MEMBERS_CONFIG_PATH);
 
        ObjectMapper mapper = new ObjectMapper();
        mapper.registerModule(new JavaTimeModule());
        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS); // Optional for ISO-8601 format
 
-       String jsonPayload = mapper.writeValueAsString(payload);
-       System.out.println("Plan Creation Payload:\n" + mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload));
+        for (String mobile : memberMobiles) {
+            log.info("Creating plan for mobile: {}", mobile);
 
-       RestUtils.post("/combine-tour-plan/createCombineTourPlanInBulk", jsonPayload).then().statusCode(200);
-       System.out.println();
+            Map<String, Object> payload = PlanPayloadData.getSmartDailyPlanPayload(mobile);
+            String jsonPayload = mapper.writeValueAsString(payload);
+
+            // Post and assert 200
+            RestUtils.post(Endpoints.Create_Plan_In_Bulk, jsonPayload).then().statusCode(200);
+
+            // optional logging
+            log.info("Plan creation payload for {}:\n{}", mobile, mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payload));
+        }
    }
 
 
-    @Test(priority = 2)
+    @Test(priority = 2,dependsOnMethods = "createPlanWithDynamicPayload")
     public void fetchPlanIdsAfterCreation() {
-       log.info("Found planId's between given start and end date");
-        LocalDate startDate = LocalDate.of(2025, 8, 12);
-        LocalDate endDate = LocalDate.of(2025, 8, 31);
-        planIds = PlanUtils.getAllPlanIds(RestUtils.SALESPERSON_TOKEN,memberId, startDate, endDate);
-        System.out.println("DJP Plan IDs: " + planIds.get("DJP"));
-        System.out.println("CJP Plan IDs: " + planIds.get("CJP"));
-        System.out.println("BJP Plan IDs: " + planIds.get("BJP"));
-    }
+       log.info("Fetching plan IDs for created plans (per member).");
+        LocalDate startDate = LocalDate.of(2025, 9, 11);
+        LocalDate endDate = LocalDate.of(2025, 9, 30);
+        for (String mobile : memberMobiles) {
+            Integer memberId = PlanPayloadData.getMemberIdByMobile(mobile);
 
-   @Test(priority = 3, dependsOnMethods = "fetchPlanIdsAfterCreation")
-    public void approveCreatedPlans() {
+            Map<String, List<Integer>> planIds = PlanUtils.getAllPlanIds(RestUtils.SALESPERSON_TOKEN, memberId, startDate, endDate);
+            planIdsPerMember.put(mobile, planIds);
 
-       log.info("Approve all plan from manager side using all planId's");
-        if (planIds.isEmpty()) {
-            throw new IllegalStateException("No plans found to approve. Please check previous steps.");
+            log.info("Member mobile: {} -> DJP: {}, CJP: {}, BJP: {}",
+                    mobile,
+                    planIds.get("DJP"),
+                    planIds.get("CJP"),
+                    planIds.get("BJP"));
         }
 
-        PlanUtils.approvePlans(planIds, RestUtils.SALESPERSON_TOKEN);
-        System.out.println("All fetched plans approved.");
+    }
+
+    @Test(priority = 3, dependsOnMethods = "fetchPlanIdsAfterCreation")
+    public void approveCreatedPlans() {
+        log.info("Approving plans for each member using manager flow.");
+
+        if (planIdsPerMember.isEmpty()) {
+            throw new IllegalStateException("No plans found to approve. Did previous steps run?");
+        }
+
+        for (Map.Entry<String, Map<String, List<Integer>>> entry : planIdsPerMember.entrySet()) {
+            String mobile = entry.getKey();
+            Map<String, List<Integer>> planIds = entry.getValue();
+
+            if (planIds == null || planIds.isEmpty()) {
+                log.warn("No plan ids for mobile {} - skipping", mobile);
+                continue;
+            }
+
+            log.info("Approving plans for mobile {}: {}", mobile, planIds);
+            PlanUtils.approvePlans(planIds, RestUtils.SALESPERSON_TOKEN);
+        }
+
+        log.info("Approve step completed for all members.");
     }
 }
 

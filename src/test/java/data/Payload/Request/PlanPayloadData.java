@@ -1,21 +1,42 @@
 package data.Payload.Request;
 
 import java.time.LocalDate;
+import Utilities.DBUtility;
 import java.time.LocalDateTime;
 import java.util.*;
 
 public class PlanPayloadData {
 
-    public static Map<String, Object> getSmartDailyPlanPayload(int memberId, int clientFmcgId) {
-        LocalDate today = LocalDate.of(2025,8,12);
-        LocalDate endDate = LocalDate.of(2025, 8, 31);
+    public static Integer getMemberIdByMobile(String mobile) {
+        return DBUtility.getSingleIntValue("SELECT id FROM sfa_db.members WHERE mobile = ?;", mobile);
+    }
+
+
+
+    public static Map<String, Object> getSmartDailyPlanPayload(String mobile) {
+
+        Integer memberId = DBUtility.getSingleIntValue(
+                "SELECT id FROM sfa_db.members WHERE mobile = ?;",
+                mobile
+        );
+        Integer clientFmcgId = DBUtility.getSingleIntValue("SELECT id FROM sfa_db.clientfmcg where member_id =?;",memberId);
+        List<Integer> beetIds = DBUtility.getIntList(
+                "SELECT id FROM sfa_db.beet WHERE client_fmcg_id = ? AND approval_status = ?;",
+                clientFmcgId,
+                "Accepted");
+        Integer reportingMangerId = DBUtility.getSingleIntValue("select reporting_manager_id From sfa_db.members where id = ?;",memberId);
+
+
+        LocalDate today = LocalDate.of(2025,9,11);
+        LocalDate endDate = LocalDate.of(2025, 9, 30);
 
         List<Map<String, Object>> doctorPlanList = new ArrayList<>();
         List<Map<String, Object>> clientFmcgPlanList = new ArrayList<>();
 
 
         List<String> workTypes = List.of("Self", "Admin_Work", "Member", "Meeting", "HO_Meeting", "Transit");
-        List<Integer> selfBeetIds = List.of(9);
+        System.out.println("beets"+beetIds);
+        List<Integer> selfBeetIds =beetIds;
         int otherBeetId = 36;
 
         int index = 0;
@@ -37,7 +58,7 @@ public class PlanPayloadData {
             if (workType.equals("Self") || workType.equals("Member")) {
                 beetId = selfBeetIds.get(index % selfBeetIds.size()); // alternate between 1 and 38
                 if (workType.equals("Member")) {
-                    otherMemberIds = List.of(20); // only for Member
+                    otherMemberIds = List.of(reportingMangerId); // only for Member
                 }
             } else {
                 beetId = otherBeetId; // for all other workTypes
@@ -80,4 +101,6 @@ public class PlanPayloadData {
 
         return finalPayload;
     }
+
+
 }

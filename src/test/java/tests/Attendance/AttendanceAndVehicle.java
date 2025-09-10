@@ -3,6 +3,7 @@ package tests.Attendance;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import endpoints.Endpoints;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,8 +15,8 @@ public class AttendanceAndVehicle {
         payload.put("imageUrl", base64Image);
 
         Response response = RestAssured.given()
-                .baseUri("https://staging.prism-sfa-dev.net")
-                .basePath("/uploadBase64")
+                .baseUri(Endpoints.BASE_URL)
+                .basePath(Endpoints.Upload_Attendance_Image)
                 .header("Authorization", "Bearer " + token)
                 .contentType(ContentType.JSON)
                 .body(payload)
@@ -40,8 +41,8 @@ public class AttendanceAndVehicle {
 
     public static void markAttendance(Map<String, Object> attendancePayload, String token) {
         Response response = RestAssured.given()
-                .baseUri("https://staging.prism-sfa-dev.net")
-                .basePath("/attendance")
+                .baseUri(Endpoints.BASE_URL)
+                .basePath(Endpoints.Mark_Attendance)
                 .header("Authorization", "Bearer " + token)
                 .contentType(ContentType.JSON)
                 .body(attendancePayload)
@@ -69,8 +70,8 @@ public class AttendanceAndVehicle {
     public static void updateVehicleType(String token, Integer memberId, String vehicleType, String visitedDate) {
 
         Response response = RestAssured.given()
-                .baseUri("https://staging.prism-sfa-dev.net")
-                .basePath("/combine-tour-plan/updateVehicleTypeByMemberId")
+                .baseUri(Endpoints.BASE_URL)
+                .basePath(Endpoints.Update_Vehicle_Type)
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
                 .queryParam("memberId", memberId)

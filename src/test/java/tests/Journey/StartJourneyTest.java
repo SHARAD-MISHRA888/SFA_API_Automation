@@ -1,5 +1,7 @@
 package tests.Journey;
 
+import Utilities.DBUtility;
+import config.MemberConfigLoader;
 import base.BaseTest;
 import data.Payload.Request.AttendancePayload;
 import data.Payload.Request.AutoDataGenerator;
@@ -15,28 +17,39 @@ import tests.Sync.SyncMemberLogUtil;
 import tests.WorkPlan.CombinePlanExtractor;
 import tests.WorkPlan.NonWorkingTypeUtil;
 
+import java.util.List;
 import java.util.Map;
 import static Utilities.RestUtils.BASE64_IMAGE;
 import static Utilities.RestUtils.SALESPERSON_TOKEN;
 @Slf4j
 public class StartJourneyTest extends BaseTest {
-    private static final String visitDate = "2025-09-03";
-    private static final Logger log = LoggerFactory.getLogger(StartJourneyTest.class);
+
+    private static final String visitDate = "2025-09-10";
+
+    private static final String MEMBERS_CONFIG_PATH = "src/test/resources/members-config.json";
+//    private static final Logger log = LoggerFactory.getLogger(StartJourneyTest.class);
 
     @DataProvider(name = "memberDataProvider")
     public Object[][] memberDataProvider() {
         log.info("Under Data-Provider method--MEMBER_ID,REPORTING_MANAGER_ID");
-        return new Object[][] {
-//                {23,20},
-   //            {22,21},
- //               {25,21},
-//                {9,7},
-//                {10,7},
-                {75,7}
-//                {110,6},
-//                {11,8},
-//                {12,8}
-        };
+        List<String> mobiles = MemberConfigLoader.loadMemberMobiles(MEMBERS_CONFIG_PATH);
+
+        // Step 2: Prepare data array
+        Object[][] data = new Object[mobiles.size()][2];
+
+        // Step 3: Loop mobiles and fetch IDs from DB
+        for (int i = 0; i < mobiles.size(); i++) {
+            String mobile = mobiles.get(i);
+            Integer memberId = DBUtility.getMemberIdByMobile(mobile);
+            Integer managerId = DBUtility.getManagerIdByMemberId(memberId);
+
+            data[i][0] = memberId;
+            data[i][1] = managerId;
+
+            log.info("Mobile {} -> MemberId {}, ManagerId {}", mobile, memberId, managerId);
+        }
+
+        return data;
     }
 
     @Test(dataProvider = "memberDataProvider")

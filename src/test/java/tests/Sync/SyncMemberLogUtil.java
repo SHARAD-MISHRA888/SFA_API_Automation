@@ -1,11 +1,13 @@
 package tests.Sync;
 
 import Utilities.RestUtils;
+import endpoints.Endpoints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import data.Payload.Request.AutoDataGenerator;
 import data.Payload.Response.DataStore;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import tests.WorkPlan.CombinePlanExtractor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,18 +19,21 @@ import static io.restassured.RestAssured.given;
 public class SyncMemberLogUtil extends RestUtils {
 
     private static Random random = new Random();
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+
     private static LocalDateTime currentTime = LocalDateTime.of(2025, 7, 3, 10, 0);
 
     public static Response syncLogsAndEndDay(String token) {
         Map<String, Object> payload = buildSyncPayload();
-        RestAssured.baseURI = "https://staging.prism-sfa-dev.net";
 
         return given()
+                .baseUri(Endpoints.BASE_URL)
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
                 .body(payload)
                 .when()
-                .post("/sync/syncMemberLogs");
+                .post(Endpoints.Sync_Member_Logs);
     }
 
     public static Map<String, Object> buildSyncPayload() {
@@ -100,49 +105,39 @@ public class SyncMemberLogUtil extends RestUtils {
         Map<String, Object> log = new HashMap<>();
         int intLogId = Integer.parseInt(logId);
 
-
+        // Randomized times
         LocalDateTime checkIn = currentTime.plusMinutes(random.nextInt(15));
         LocalDateTime checkOut = checkIn.plusMinutes(30 + random.nextInt(30));
         currentTime = checkOut.plusMinutes(10);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-
-
-
-        String lat = null;
-        String lon = null;
-
-
-        if ("outlet".equalsIgnoreCase(type)) {
-            lat = (String) DataStore.get("outletLat");
-            lon = (String) DataStore.get("outletLong");
-        } else if ("doctor".equalsIgnoreCase(type)) {
-            lat = (String) DataStore.get("docLat");
-            lon = (String) DataStore.get("docLong");
-        } else if ("client".equalsIgnoreCase(type)) {
-            lat = (String) DataStore.get("clientLat");
-            lon = (String) DataStore.get("clientLong");
+        double[] latLong = null;
+        switch (type.toLowerCase()) {
+            case "doctor":
+                latLong = CombinePlanExtractor.getDoctorLatLong(intLogId);
+                log.put("doctorLogId", intLogId);
+                break;
+            case "client":
+                latLong = CombinePlanExtractor.getClientLatLong(intLogId);
+                log.put("clientFmcgLogId", intLogId);
+                break;
+            default: // outlet (BJP case)
+                latLong = CombinePlanExtractor.getOutletLatLong(intLogId);
+                log.put("beetLogId", intLogId);
         }
 
-        if (lat == null || lon == null) {
-            lat = "26.4448";  // default Kanpur lat
-            lon = "80.3686";  // default Kanpur lon
+        if (latLong != null && latLong.length == 2) {
+            log.put("latitude", latLong[0]);
+            log.put("longitude", latLong[1]);
+        } else {
+            log.put("latitude", 0.0);   // fallback
+            log.put("longitude", 0.0);  // fallback
         }
-
-        log.put("latitude", lat);
-        log.put("longitude", lon);
-        log.put("checkIn", checkIn.format(formatter));
-        log.put("checkOut", checkOut.format(formatter));
+        log.put("checkIn", checkIn.format(FORMATTER));
+        log.put("checkOut", checkOut.format(FORMATTER));
         log.put("remark", "");
         log.put("remainder", false);
         log.put("remainderDate", null);
         log.put("status", "Completed");
-
-        switch (type) {
-            case "doctor": log.put("doctorLogId", intLogId); break;
-            case "client": log.put("clientFmcgLogId", intLogId); break;
-            default:        log.put("beetLogId", intLogId); break;
-        }
 
         return log;
     }
@@ -173,13 +168,11 @@ public class SyncMemberLogUtil extends RestUtils {
         // Build the payload
         Map<String, Object> payload = updateWorkingStatus();
 
-        // Define the endpoint URL
-        String endpoint = "https://staging.prism-sfa-dev.net/combine-tour-plan/updateWorkingWithForBjpAndDjpAndCjp"; // 🔁 Replace with actual PUT endpoint
 
         // Perform the PUT request using RestAssured
         Response response = RestAssured.given()
-                .baseUri("https://staging.prism-sfa-dev.net/") // 🔁 Base URL
-                .basePath("/combine-tour-plan/updateWorkingWithForBjpAndDjpAndCjp")    // 🔁 Path if needed separately
+                .baseUri(Endpoints.BASE_URL) // 🔁 Base URL
+                .basePath(Endpoints.Update_Working_with)    // 🔁 Path if needed separately
                 .header("Authorization", "Bearer " + token)
                 .header("Content-Type", "application/json")
                 .body(payload)

@@ -2,24 +2,31 @@ package data.Payload.Request;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import data.Payload.Response.DataStore;
+import endpoints.Endpoints;
+import endpoints.Endpoints;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.xml.crypto.Data;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
 
+@Slf4j
 public class AutoDataGenerator {
 
 
     public static void generateOrderAndSampleData(String token, int memberId) {
 
         DataStore.put("memberId", memberId);
-        Response response = given()
+        Response response = given().
+                baseUri(Endpoints.BASE_URL)
                 .header("Authorization", "Bearer " + token)
-                .accept("application/hal+json")
-                .get("https://staging.prism-sfa-dev.net/combine-tour-plan/getTodayCombinePlanByMemberId/" + memberId + "?visitDate=" + getTodayDate());
+                .header("accept", "application/hal+json")
+                .pathParam("memberId",memberId)
+                .queryParam("visitDate",getTodayDate())
+                .get(Endpoints.Get_Today_Plan);
 
         List<Map<String, Object>> bjpList = response.jsonPath().getList("bjpReportResponseList");
         List<Map<String, Object>> djpList = response.jsonPath().getList("doctorReportResponseList");
@@ -83,31 +90,6 @@ public class AutoDataGenerator {
             Map<String, Object> beetDto = log.containsKey("beet") ? (Map<String, Object>) log.get("beet") : null;
             String workWithDto = log.containsKey("workingWith") ? (String) log.get("workingWith") : null;
 
-//            String outletLat = (outletDto != null && outletDto.containsKey("latitude"))
-//                    ? outletDto.get("latitude").toString()
-//                    : null;
-//            String outletLong = (outletDto != null && outletDto.containsKey("longitude"))
-//                    ? outletDto.get("longitude").toString()
-//                    : null;
-//            String docLat = (doctorDto != null && doctorDto.containsKey("latitude"))
-//                    ? doctorDto.get("latitude").toString() :
-//                    null;
-//            String docLong = (doctorDto !=null && doctorDto.containsKey("longitude"))
-//                    ? doctorDto.get("longitude").toString() :
-//                    null;
-//            String clientLat =(clientDto !=null && clientDto.containsKey("latitude"))
-//                    ? clientDto.get("latitude").toString() :
-//                    null;
-//            String clientLong = (clientLat !=null && clientDto.containsKey("longitude"))
-//                    ? clientDto.get("longitude").toString() :
-//                    null;
-//
-//            DataStore.put("outletLat",outletLat);
-//            DataStore.put("OutletLong",outletLong);
-//            DataStore.put("docLat",docLat);
-//            DataStore.put("docLong",docLong);
-//            DataStore.put("clientLat",clientLat);
-//            DataStore.put("clientLong",clientLong);
 
             DataStore.put("workWith",workWithDto);
 
@@ -149,6 +131,7 @@ public class AutoDataGenerator {
                 }
 
                 List<Map<String, Object>> productInventory = productInventoryCache.get(clientId);
+                System.out.println("Product Inventory is "+productInventory);
 
                 Map<Integer, List<Map<String, Object>>> outletOrderMap = new HashMap<>();
 
@@ -259,7 +242,7 @@ public class AutoDataGenerator {
                     Map<String, Object> order = new HashMap<>();
                     order.put("productId", productId);
                     order.put("quantity", 10);
-                    order.put("bundleType","Cases");
+                    order.put("bundleType",0);
                     order.put("clientId", clientId);
                     order.put("beetId", beetId);
                     order.put("clientLogId", logId);
@@ -305,8 +288,6 @@ public class AutoDataGenerator {
         DataStore.put("orders", allOrders);
         DataStore.put("samples", allSamples);
 
-        System.out.println("Total Orders: " + allOrders.size());
-        System.out.println("Total Samples: " + allSamples.size());
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             String ordersJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(allOrders);
@@ -314,7 +295,6 @@ public class AutoDataGenerator {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("--------------------------------------------------");
         try {
             String ordersJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(allSamples);
             System.out.println("Sample in JSON Format:\n" + ordersJson);
@@ -325,11 +305,15 @@ public class AutoDataGenerator {
 
 
         private static List<Map<String, Object>> fetchSampleInventory (int memberId, String token){
-            RestAssured.baseURI = "https://staging.prism-sfa-dev.net";
+
             Response response = given()
+                    .baseUri(Endpoints.BASE_URL)
                     .header("Authorization", "Bearer " + token)
-                    .get("/inventory-service/sample-inventory/getAllSampleMemberById/" + memberId +
-                            "?page=0&pageSize=10&sortBy=createdDate&sortDirection=asc");
+                    .queryParam("page", 0)
+                    .queryParam("pageSize", 10)
+                    .queryParam("sortBy", "createdDate")
+                    .queryParam("sortDirection", "asc")
+                    .get(Endpoints.Fetch_Sample_Inventory + memberId);
 
             // Debug response
             System.out.println("Sample Inventory Response: " + response.asString());
@@ -340,12 +324,15 @@ public class AutoDataGenerator {
 
 
         private static List<Map<String, Object>> fetchProductInventory ( int clientId, String token){
-            RestAssured.baseURI = "https://staging.prism-sfa-dev.net";
 
             Response response = given()
+                    .baseUri(Endpoints.BASE_URL)
                     .header("Authorization", "Bearer " + token)
-                    .get("/inventory-service/getAllInventoryByClinetFmcgId/" + clientId +
-                            "?page=0&pageSize=10&sortBy=createdDate&sortDirection=desc");
+                    .queryParam("page", 0)
+                    .queryParam("pageSize", 10)
+                    .queryParam("sortBy", "createdDate")
+                    .queryParam("sortDirection", "asc")
+                    .get(Endpoints.Fetch_Product_Inventory + clientId);
 
             System.out.println("Product Inventory Response: " + response.asString());
 
@@ -360,12 +347,16 @@ public class AutoDataGenerator {
 
 
         public static List<Map<String, Object>> fetchAllProducts (String token){
-            RestAssured.baseURI = "https://staging.prism-sfa-dev.net";
 
             Response response = given()
+                    .baseUri(Endpoints.BASE_URL)
                     .header("Authorization", "Bearer " + token)
                     .header("accept", "application/hal+json")
-                    .get("/product-service/products/all?page=0&pageSize=10&sortBy=createdDate&sortDirection=desc");
+                    .queryParam("page", 0)
+                    .queryParam("pageSize", 10)
+                    .queryParam("sortBy", "createdDate")
+                    .queryParam("sortDirection", "asc")
+                    .get(Endpoints.Fetch_All_Product);
 
             System.out.println("Products Response: " + response.asString());
 

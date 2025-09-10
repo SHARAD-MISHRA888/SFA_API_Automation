@@ -14,6 +14,7 @@ public class DataStore {
     public static boolean containsKey(String key) {
         return data.containsKey(key);
     }
+    private static final Map<String, Object> store = new HashMap<>();
 
     public static <T> T get(String key) {
         if (!data.containsKey(key)) {
@@ -47,6 +48,15 @@ public class DataStore {
 
     public static void clear() {
         data.clear();
+    }
+
+    public static <T> T getOrDefault(String key, T defaultValue) {
+        Object value = store.getOrDefault(key, defaultValue);
+        try {
+            return (T) value;
+        } catch (ClassCastException e) {
+            throw new IllegalStateException("Value for key '" + key + "' cannot be cast to expected type.");
+        }
     }
 }
 

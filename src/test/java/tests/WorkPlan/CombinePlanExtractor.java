@@ -1,27 +1,39 @@
 package tests.WorkPlan;
 
 import data.Payload.Response.DataStore;
+import endpoints.Endpoints;
 import io.restassured.RestAssured;
+import Utilities.DBUtility;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static io.restassured.RestAssured.given;
 
 public class CombinePlanExtractor {
 
-    public static void extractAllLogsAndPlanIds(String token, int memberId, String visitDate) {
-        RestAssured.baseURI = "https://staging.prism-sfa-dev.net";
 
-        Response response = given()
+    private static final Map<Integer, double[]> outletLatLongMap = new HashMap<>();
+    private static final Map<Integer, double[]> doctorLatLongMap = new HashMap<>();
+    private static final Map<Integer, double[]> clientLatLongMap = new HashMap<>();
+
+    public static void extractAllLogsAndPlanIds(String token, int memberId, String visitDate) {
+
+        Response response = given().
+                baseUri(Endpoints.BASE_URL)
                 .header("Authorization", "Bearer " + token)
                 .header("accept", "application/hal+json")
-                .when()
-                .get("/combine-tour-plan/getTodayCombinePlanByMemberId/" + memberId + "?visitDate=" + visitDate);
+                .pathParam("memberId", memberId)
+                .queryParam("visitDate", getTodayDate())
+                .get(Endpoints.Get_Today_Plan);
+
 
         if (response.getStatusCode() != 200) {
             throw new RuntimeException("Failed to fetch combine plan: " + response.statusLine());
@@ -44,37 +56,66 @@ public class CombinePlanExtractor {
         if (cjpList != null) allLogs.addAll(cjpList);
 
         for (Map<String, Object> log : allLogs) {
-            Map<String, Object> outletDto = log.containsKey("outletGetDto") ? (Map<String, Object>) log.get("outletGetDto") : null;
-            Map<String, Object> doctorDto = log.containsKey("doctorRes") ? (Map<String, Object>) log.get("doctorRes") : null;
-            Map<String, Object> clientDto = log.containsKey("clientFMCGResponse") ? (Map<String, Object>) log.get("clientFMCGResponse") : null;
-            Map<String, Object> beetDto = log.containsKey("beet") ? (Map<String, Object>) log.get("beet") : null;
-            String workWithDto = log.containsKey("workingWith") ? (String) log.get("workingWith") : null;
+            Integer logId = (log.get("id") instanceof Integer) ? (Integer) log.get("id") : null;
 
-            String outletLat = (outletDto != null && outletDto.containsKey("latitude"))
-                    ? outletDto.get("latitude").toString()
-                    : null;
-            String outletLong = (outletDto != null && outletDto.containsKey("longitude"))
-                    ? outletDto.get("longitude").toString()
-                    : null;
-            String docLat = (doctorDto != null && doctorDto.containsKey("latitude"))
-                    ? doctorDto.get("latitude").toString() :
-                    null;
-            String docLong = (doctorDto != null && doctorDto.containsKey("longitude"))
-                    ? doctorDto.get("longitude").toString() :
-                    null;
-            String clientLat = (clientDto != null && clientDto.containsKey("latitude"))
-                    ? clientDto.get("latitude").toString() :
-                    null;
-            String clientLong = (clientLat != null && clientDto.containsKey("longitude"))
-                    ? clientDto.get("longitude").toString() :
-                    null;
+            Map<String, Object> outletDto = log.containsKey("outletGetDto")
+                    ? (Map<String, Object>) log.get("outletGetDto") : null;
+            Map<String, Object> doctorDto = log.containsKey("doctorRes")
+                    ? (Map<String, Object>) log.get("doctorRes") : null;
+            Map<String, Object> clientDto = log.containsKey("clientFMCGResponse")
+                    ? (Map<String, Object>) log.get("clientFMCGResponse") : null;
 
-            DataStore.put("outletLat", outletLat);
-            DataStore.put("OutletLong", outletLong);
-            DataStore.put("docLat", docLat);
-            DataStore.put("docLong", docLong);
-            DataStore.put("clientLat", clientLat);
-            DataStore.put("clientLong", clientLong);
+            Integer outletId = (outletDto != null && outletDto.get("id") instanceof Integer)
+                    ? (Integer) outletDto.get("id") : null;
+
+            Integer clientId = (clientDto != null && clientDto.get("id") instanceof Integer)
+                    ? (Integer) clientDto.get("id")
+                    : (outletDto != null && outletDto.containsKey("clientId"))
+                    ? (Integer) outletDto.get("clientId") : null;
+
+            Integer doctorId = (doctorDto != null && doctorDto.get("id") instanceof Integer)
+                    ? (Integer) doctorDto.get("id") : null;
+
+            // ✅ Helper to fetch lat/long safely
+            BiConsumer<String, Integer> fetchLatLong = (type, id) -> {
+                if (id != null && logId != null) {
+                    try {
+                        String query;
+                        switch (type.toLowerCase()) {
+                            case "doctor":
+                                query = "SELECT latitude, longitude FROM sfa_db.doctor WHERE id = ?;";
+                                break;
+                            case "client":
+                                query = "SELECT latitude, longitude FROM sfa_db.clientfmcg WHERE id = ?;";
+                                break;
+                            default:
+                                query = "SELECT latitude, longitude FROM sfa_db.outlet WHERE id = ?;";
+                        }
+
+                        double[] latLong = DBUtility.getLatLong(query, id);
+                        if (latLong == null || latLong.length < 2) return;
+
+                        switch (type.toLowerCase()) {
+                            case "doctor":
+                                doctorLatLongMap.put(logId, latLong);
+                                break;
+                            case "client":
+                                clientLatLongMap.put(logId, latLong);
+                                break;
+                            default:
+                                outletLatLongMap.put(logId, latLong);
+                        }
+
+                    } catch (Exception e) {
+                        System.err.println("Failed to fetch lat/long for " + type + " with ID=" + id);
+                        e.printStackTrace();
+                    }
+                }
+            };
+
+            fetchLatLong.accept("outlet", outletId);
+            fetchLatLong.accept("client", clientId);
+            fetchLatLong.accept("doctor", doctorId);
         }
 
 
@@ -82,12 +123,12 @@ public class CombinePlanExtractor {
 
         String workingType = jsonPath.getString("bjpReportResponseList[0].workingWith");
 
-        DataStore.put("WorkingWith",workingType);
+        DataStore.put("WorkingWith", workingType);
 
 
-        DataStore.put("clientFmcgJourneyPlanStatus",clientFmcgJourneyPlanStatus);
-        DataStore.put("doctorJourneyPlanStatus",doctorJourneyPlanStatus);
-        DataStore.put("beetJourneyPlanStatus",beetJourneyPlanStatus);
+        DataStore.put("clientFmcgJourneyPlanStatus", clientFmcgJourneyPlanStatus);
+        DataStore.put("doctorJourneyPlanStatus", doctorJourneyPlanStatus);
+        DataStore.put("beetJourneyPlanStatus", beetJourneyPlanStatus);
 
         // Extract beet logs (BJP)
         List<Integer> beetLogIds = jsonPath.getList("bjpReportResponseList.id");
@@ -133,6 +174,21 @@ public class CombinePlanExtractor {
 
         System.out.println("Extracted all logs and plan IDs successfully.");
 
+    }
+    private static String getTodayDate () {
+        return java.time.LocalDate.now().toString();
+    }
+
+    public static double[] getOutletLatLong(int logId) {
+        return outletLatLongMap.get(logId);
+    }
+
+    public static double[] getDoctorLatLong(int logId) {
+        return doctorLatLongMap.get(logId);
+    }
+
+    public static double[] getClientLatLong(int logId) {
+        return clientLatLongMap.get(logId);
     }
 }
 
