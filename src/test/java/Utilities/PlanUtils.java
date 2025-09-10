@@ -4,6 +4,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
 import java.time.LocalDate;
+import endpoints.Endpoints;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -11,15 +12,14 @@ import static io.restassured.RestAssured.given;
 
 public class PlanUtils extends RestUtils {
     public static Map<String, List<Integer>> getAllPlanIds( String token,int memberId, LocalDate startDate, LocalDate endDate) {
-        String baseUri = "https://staging.prism-sfa-dev.net";
 
-        String fullUrl = "/combine-tour-plan/findByStartAndEndDateByMemberIdForBjpAndDjpAndCjp/" +
+        String fullUrl = Endpoints.Fetch_Plan_ID +
                 memberId + "?startDate=" + startDate + "&endDate=" + endDate;
 
-        System.out.println("Calling URL: " + baseUri + fullUrl);
+        System.out.println("Calling URL: " + Endpoints.BASE_URL + fullUrl);
 
         Response response = given()
-                .baseUri(baseUri)
+                .baseUri(Endpoints.BASE_URL)
                 .header("Authorization", "Bearer " +token)
                 .header("accept", "application/hal+json")
                 .get(fullUrl);
@@ -74,8 +74,8 @@ public class PlanUtils extends RestUtils {
         payload.put("cjpApprovalStatus", "Accepted");
 
         Response response = given()
-                .baseUri("https://staging.prism-sfa-dev.net")
-                .basePath("/combine-tour-plan/updateApprovalStatus")
+                .baseUri(Endpoints.BASE_URL)
+                .basePath(Endpoints.Approve_Plans)
                 .header("Authorization", "Bearer " + token)
                 .contentType(ContentType.JSON)
                 .body(payload)
